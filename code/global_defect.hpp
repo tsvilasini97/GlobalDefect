@@ -16,6 +16,8 @@ private:
   double dt_;
   double dx_;
 
+  int step_ ;
+
 
   Lattice lat_;
   Field<double> phi_;
@@ -34,6 +36,9 @@ public:
 
   void initialize(int size, int N);
 
+
+  void generate_initCond();
+
   void evolve();
 
   void evolve_step();
@@ -47,6 +52,8 @@ public:
 
 void Global_defect::initialize(int size, int N)
 {
+
+  step_ = 0;
   physicalSize_ = 1;
   courantFactor_ = 10 ;
   dx_ = physicalSize_ / N_;
@@ -58,6 +65,24 @@ void Global_defect::initialize(int size, int N)
   pi_.initialize(lat_,N_);
   pi_.alloc();
 
+  generate_initCond();
+
+}
+
+void Global_defect::generate_initCond()
+{
+  Site x(lat_);
+  for(x.first();x.test();x.next())
+  {
+    for(int i = 0 ; i < N_; i++)
+    {
+      phi_(x,i) = sin(x.coord(0)*2.0*3.14 / N_ );
+      pi_(x,i) = 0;
+    }
+  }
+
+  phi_.saveHDF5("initCond.h5");
+
 }
 
 void Global_defect::evolve()
@@ -67,7 +92,7 @@ void Global_defect::evolve()
     evolve_step();
     if(output_now())
     {
-
+      output();
     }
   }
 }
@@ -84,16 +109,17 @@ void Global_defect::evolve_step()
     }
   }
 
+  phi_.updateHalo(); //update the value of phi in the halo
 
   for(x.first();x.test();x.next())
   {
     for(int i = 0 ; i < N_; i++)
     {
-      pi_(x,i) =  phi_(x,i) / 10000000;
+      pi_(x,i) = ( phi_(x+0,i) - phi_(x-0,i) ) / dx_;
     }
   }
 
-
+  step_++;
 
 }
 
@@ -106,7 +132,8 @@ bool Global_defect::output_now()
 
 void Global_defect::output()
 {
-  cout<<"process "<<parallel.rank()<< " : Oh we did a step!!!"<<endl;
+  cout<<"process "<<parallel.rank()<< " on step: "<<step_<< " : Oh we did a step!!!"<<endl;
+  phi_.saveHDF5("test.h5");
 }
 
 
