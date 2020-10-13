@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   parallel.initialize(n,m);
 
   
-  Global_defect sim(16,2);
+  Global_defect sim(16,1);
   sim.evolve();
 
 

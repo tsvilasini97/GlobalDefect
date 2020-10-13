@@ -1,7 +1,7 @@
 # programming environment
 COMPILER     := mpic++
-INCLUDE      := -I/Users/daverio/Documents/LATfield2 -I/usr/local/include # add the path to LATfield2 and other libraries (if necessary)
-LIB          :=  -L/usr/local/lib -lhdf5 # -lfftw3 -lm  -lgsl -lgslcblas
+INCLUDE      := -I/home/vilasini/Thesis/progs/LATfield2 -I/usr/local/include -I/usr/include/hdf5/serial # add the path to LATfield2 and other libraries (if necessary)
+LIB          := -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5 # -lfftw3 -lm  -lgsl -lgslcblas
 
 
 # target and source

@@ -80,7 +80,7 @@ void Global_defect::evolve_step()
   {
     for(int i = 0 ; i < N_; i++)
     {
-      phi_(x,i) = dt_ * pi_(x,i);
+      phi_(x,i) = phi_(x,i) + dt_ * pi_(x,i);
     }
   }
 
@@ -89,7 +89,7 @@ void Global_defect::evolve_step()
   {
     for(int i = 0 ; i < N_; i++)
     {
-      pi_(x,i) =  phi_(x,i) / 10000000;
+      pi_(x,i) =  phi_(x,i) + dt_*phi_(x,i);
     }
   }
 
