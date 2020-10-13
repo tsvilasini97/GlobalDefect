@@ -1,0 +1,9 @@
+runID=run1
+nComponents=2
+latticeSize=64
+physicalSize=64
+courantFactor=0.1
+t_start=1
+t_end=300
+lambda=5
+eta2=1

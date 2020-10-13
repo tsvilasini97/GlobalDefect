@@ -6,6 +6,7 @@ int main(int argc, char **argv)
 {
 
   int n,m;
+  string settings_filename;
 
   for (int i=1 ; i < argc ; i++ ){
     if ( argv[i][0] != '-' )continue;
@@ -17,13 +18,17 @@ int main(int argc, char **argv)
       case 'm':
         m =  atoi(argv[++i]);
         break;
+      case 's':
+        settings_filename = argv[++i];
+        break;
     }
   }
 
   parallel.initialize(n,m);
 
 
-  Global_defect sim(16,1);
+  Global_defect sim(settings_filename);
+
   sim.evolve();
 
 
