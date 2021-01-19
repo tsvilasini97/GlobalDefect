@@ -4,9 +4,8 @@
 
 void output_powerSpectrum(Field<Imag> & field,
                           string filename,
-                          metadata & md,
-                          cosmology & cosmo,
                           const int nbins,
+                          const double physicalSize,
                           const bool deconv = true,
                           const bool dimensionless = false,
                           const bool normFT = false,
@@ -29,7 +28,7 @@ void output_powerSpectrum(Field<Imag> & field,
       cout << "cannot open file: " << filename << ", aborting output_powerSpectrum" << endl;
     }
   }
-
+  
   rKSite k(field.lattice());
   long npts = field.lattice().size(1);
 
@@ -54,7 +53,7 @@ void output_powerSpectrum(Field<Imag> & field,
   double norm_factor;
   if(factor_norm)
   {
-    norm_factor = pow(md.physicalSize,3);
+    norm_factor = pow(physicalSize,3);
   }
   else
   {
@@ -66,7 +65,7 @@ void output_powerSpectrum(Field<Imag> & field,
   double s2;
   Imag ps;
 
-  double kfactor = 2.0*M_PI/md.physicalSize;
+  double kfactor = 2.0*M_PI/physicalSize;
 
   int i;
 
@@ -75,13 +74,13 @@ void output_powerSpectrum(Field<Imag> & field,
   for (i = 0; i <= npts/2; i++)
   {
     k2_arr[i] = 2. * M_PI * (double)i;
-    k2_arr[i] /= md.physicalSize;
+    k2_arr[i] /= physicalSize;
     k2_arr[i] *= k2_arr[i];
   }
   for (; i<npts; i++)
   {
     k2_arr[i] = 2. * M_PI * (double)(npts-i);
-    k2_arr[i] /= md.physicalSize;
+    k2_arr[i] /= physicalSize;
     k2_arr[i] *= k2_arr[i];
   }
   k2max = 3.0 * k2_arr[npts/2];
@@ -179,9 +178,8 @@ void output_powerSpectrum(Field<Imag> & field,
 
   if(parallel.rank()==0)
   {
-    file<<"# z: "<< (1.0-cosmo.scaleFactor)/cosmo.scaleFactor
-        <<", npts: "<< md.npts
-        << ", physicalSize: "<<md.physicalSize
+    file<<"npts: "<< npts
+        << ", physicalSize: "<<physicalSize
         <<endl;
 
 
