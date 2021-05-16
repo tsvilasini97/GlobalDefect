@@ -1,0 +1,23 @@
+runID= run16
+nComponents= 2
+latticeSize= 256
+physicalSize= 128
+courantFactor= 0.2
+t_start= 10.0
+t_end= 129
+lambda0= 1.0
+eta2= 4.0
+bin_numbers= 64
+omega_r= 0 #9.4e-5
+omega_m= 1 #0.315
+omega_lambda= 0 #0.6847
+H0= 0.07085088
+a_i= 0.000001
+G= 6.67408e-11
+friction coefficient 1= 1.000
+Dissipation time end= 129
+Dissipation friction coefficient 1= 1.000
+path= /media/vilasini/DATA/UNIGE/Thesis/code/UNIGE-Thesis/code/outputs/run16/
+univ= radiation  #lcdm #matter
+snap_times= 34.0,58.0,82.0,105.0,120.0
+
