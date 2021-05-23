@@ -1,4 +1,4 @@
-runID= run16
+runID= run7
 nComponents= 2
 latticeSize= 256
 physicalSize= 128
@@ -17,7 +17,7 @@ G= 6.67408e-11
 friction coefficient 1= 1.000
 Dissipation time end= 129
 Dissipation friction coefficient 1= 1.000
-path= /media/vilasini/DATA/UNIGE/Thesis/code/UNIGE-Thesis/code/outputs/run16/
+path= /media/vilasini/DATA/UNIGE/Thesis/code/GlobalDefect/outputs/run7/
 univ= radiation  #lcdm #matter
-snap_times= 34.0,58.0,82.0,105.0,120.0
-
+ic_gen= read_file #default
+snap_times= 34,58.0,82.0,105.0,120.0

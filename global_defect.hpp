@@ -29,11 +29,11 @@ private:
 	int nComponents_;
 	float physicalSize_;
 	float courantFactor_;
-	float dt_;
+	double dt_;
 	float dx_;
 	float t_start_;
 	float t_end_;
-	float t_;
+	double t_;
 
 	float lambda_;
 	float lambda0_;
@@ -65,6 +65,7 @@ private:
 	char *snap_times;
 	vector<string> snap_times_;
 	vector<float> Snap_times_;
+	string ic;
 
 //  double *karr;
 //  double *pkarr;
@@ -144,26 +145,6 @@ public:
 	void output();
 };
 
-////////////////////////////////////////////////////////////////
-////    Initialize
-//
-////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-//  This function initialises the value 
-//
-// Parameters:
-//     dx_ = the distance between the lattice points
-//     dt_ = the time step taken
-//     lat_ = the real space lattice
-//     klat_ = the fourier space lattice
-//     phi_defect = the scalar field of the defect
-//     pi_defect = the phi dot term used for the leapfrog algorithm
-//     rho_ = the T00 term of the defect
-//     rho_k_ = the T00 term of the defect in real space
-//     P_ = the Tii term of the defect
-//     rho_c0 = the current critical density
-//     
-///////////////////////////////////////////////////////////////
 
 void Global_defect::initialize(string settings_filename)
 {
@@ -173,7 +154,8 @@ void Global_defect::initialize(string settings_filename)
 
 	dx_ = physicalSize_/latticeSize_;
 	dt_ = courantFactor_ * dx_;
-
+//	dt_ = 0.1000000;
+//	dt_ = ceil(dt_ * 10.0) / 10.0;
 	lat_.initialize(3,latticeSize_,1);
 	klat_.initializeRealFFT(lat_,0);
 
@@ -244,20 +226,6 @@ void Global_defect::initialize(string settings_filename)
 //  COUT<<"The val of pi is="<<M_PI<<endl<<endl;
 }
 
-/////////////////////////////////////////////////////////////
-//  loadSettings
-//
-/////////////////////////////////////////////////////////////
-// This function loads the settings and it also creates a 
-// directory with the given runID to save the outputs in 
-// and also saves the initial values to a separate 
-// file: " settingsfile.txt"
-//
-////////////////////////////////////////////////////////////
-// Parameters:
-//    
-//    settings_filename = the file in which the initial params are defined
-/////////////////////////////////////////////////////////////
 
 void Global_defect::loadSettings(string settings_filename)
 {
@@ -290,6 +258,7 @@ void Global_defect::loadSettings(string settings_filename)
 	setfile.read("G",G);
 	setfile.read("bin_numbers",binnos);
 	setfile.read("snap_times", snap_times);
+	setfile.read("ic_gen",ic);
 	setfile.close();
 
 	if(parallel.rank() == 0)
@@ -302,7 +271,7 @@ void Global_defect::loadSettings(string settings_filename)
 
 	ofstream settingsfile;
 	settingsfile.open (path_  + runID_+"_settingsfile.txt",ios::trunc);
-	settingsfile << "runID = " <<runID_ <<endl << "nComponents =" << nComponents_ <<endl << "Lattice Size ="<<latticeSize_ <<endl<<"Physical Size ="<<physicalSize_<<endl<<"Courant Factor ="<< courantFactor_ <<endl<<"t_start ="<<t_start_<<endl<<"t_end ="<<t_end_<<endl<<"lambda0 ="<<lambda0_<<endl<<"eta2 ="<<eta2_<<endl<<"omega_r ="<<omega_r<<endl<<"omega_m ="<<omega_m<<endl<<"omega_r ="<<omega_r<<endl<<"omega_lambda ="<<omega_lambda<<endl<<"bin_numbers ="<<binnos<<endl;
+	settingsfile << "runID = " <<runID_ <<endl << "nComponents =" << nComponents_ <<endl << "Lattice Size ="<<latticeSize_ <<endl<<"Physical Size ="<<physicalSize_<<endl<<"Courant Factor ="<< courantFactor_ <<endl<<"t_start ="<<t_start_<<endl<<"t_end ="<<t_end_<<endl<<"lambda0 ="<<lambda0_<<endl<<"eta2 ="<<eta2_<<endl<<"omega_r ="<<omega_r<<endl<<"omega_m ="<<omega_m<<endl<<"omega_r ="<<omega_r<<endl<<"omega_lambda ="<<omega_lambda<<endl<<"bin_numbers ="<<binnos<<"ic_gen"<<ic<<endl;
 	settingsfile.close();
 }
 
@@ -318,44 +287,47 @@ unsigned long int Global_defect::random_seed()
 void Global_defect::generate_initCond()
 {
   // Todo: understand how to change seed with gsl....
-//  Site x(lat_);
+	if(ic == "default_gen")
+	{
+		Site x(lat_);
 
-//  const gsl_rng_type * T;
-//  gsl_rng * r;
+		const gsl_rng_type * T;
+		gsl_rng * r;
 
-//  gsl_rng_env_setup();
-//  
-//  gsl_rng_default_seed = random_seed();
+		gsl_rng_env_setup();
 
-//  T = gsl_rng_default;
-//  r = gsl_rng_alloc (T);
+		gsl_rng_default_seed = random_seed();
 
-//  for(x.first();x.test();x.next())
-//  {
-//    double phiNorm2 = 0;
-//    //theta = gsl_rng_uniform (r);
-//    //phi_defect_(x,0) = eta2*sin(theta);
-//    //phi_defect_(x,1) = eta2*cos(theta);
-//    for(int c=0;c<nComponents_;c++)
-//    {
-//      phi_defect_(x,c) = gsl_ran_gaussian (r,1);
-//      phiNorm2 += phi_defect_(x,c)*phi_defect_(x,c);
-//    }
-//    double ratio =  sqrt(eta2_/phiNorm2);
-//    for(int c=0;c<nComponents_;c++)
-//    {
-//      phi_defect_(x,c) *= ratio;
-//      pi_defect_(x,c) = 0;
-//    }
-//  }
-//  
-//  gsl_rng_free (r);
+		T = gsl_rng_default;
+		r = gsl_rng_alloc (T);
 
-//	phi_defect_.loadHDF5("/media/vilasini/DATA/UNIGE/Thesis/code/assier_data/fieldPhi_test_t10.h5");
-//	pi_defect_.loadHDF5("/media/vilasini/DATA/UNIGE/Thesis/code/assier_data/fieldPi_test_t10.h5");
-	pi_defect_.loadHDF5("fieldPi_test_t10.h5");
-	phi_defect_.loadHDF5("fieldPhi_test_t10.h5");
-	phi_defect_.updateHalo();
+		for(x.first();x.test();x.next())
+		{
+			double phiNorm2 = 0;
+			//theta = gsl_rng_uniform (r);
+			//phi_defect_(x,0) = eta2*sin(theta);
+			//phi_defect_(x,1) = eta2*cos(theta);
+			for(int c=0;c<nComponents_;c++)
+			{
+				phi_defect_(x,c) = gsl_ran_gaussian (r,1);
+				phiNorm2 += phi_defect_(x,c)*phi_defect_(x,c);
+			}
+			double ratio =  sqrt(eta2_/phiNorm2);
+			for(int c=0;c<nComponents_;c++)
+			{
+				phi_defect_(x,c) *= ratio;
+				pi_defect_(x,c) = 0;
+			}
+		}
+		gsl_rng_free (r);
+	}
+	else if(ic == "read_file")
+	{
+		pi_defect_.loadHDF5("fieldPi_test_t10.h5");
+		phi_defect_.loadHDF5("fieldPhi_test_t10.h5");
+		phi_defect_.updateHalo();
+	}
+
 	phi_defect_.saveHDF5(path_ + runID_ + "_phi_defect_initCond.h5");
 	pi_defect_.saveHDF5(path_  + runID_ + "_pi_defect_initCond.h5");
 	COUT<< "Initial Condition generated"<<endl<<endl;
@@ -385,11 +357,10 @@ void Global_defect::evolve()
 		field_leapfrog();
 //		averagephidefect();
 //		averagerhodefect();
-		COUT << "Current time is at: " << t_ << " and a is: " << a_ << endl;
+		COUT << setprecision(8) << "Current time is at: " << t_ << " and a is: " << a_ << endl;
 		if(output_now())
 		{
 			compute_rho_P_();
-			compute_rho_t();
 			output();
 		}
 		step++;
@@ -403,6 +374,7 @@ void Global_defect::field_leapfrog()
 	t_ += dt_;
 	next_cosmology(t_);
 	update_pi();
+//	t_ += dt_/2.0;
 //	t_ += dt_/2.0;
 //	next_cosmology(t_);
 }
@@ -424,7 +396,6 @@ void Global_defect::update_phi()
 void Global_defect::update_pi()
 {
 	Site x(lat_);
-
 	double c1 = (1.0 - dt_ * adot_overa_)/(1.0 + dt_ * adot_overa_);
 	double c2 = dt_ / (1.0 + dt_ * adot_overa_);
 	double a2 = a_*a_;
@@ -440,9 +411,9 @@ void Global_defect::update_pi()
 		double lapPhi = 0;
 		for(int c = 0;c<nComponents_;c++)
 		{
-			lapPhi = -6.0 * phi_defect_(x,c) / dx_ / dx_;
-			for(int i = 0 ; i<3 ; i++)lapPhi += (phi_defect_(x+i,c) + phi_defect_(x-i,c)) / dx_ / dx_;
-//			lapPhi = lapPhi / dx_ / dx_;
+			lapPhi = -6.0 * phi_defect_(x,c);
+			for(int i = 0 ; i<3 ; i++)lapPhi += (phi_defect_(x+i,c) + phi_defect_(x-i,c));
+			lapPhi = lapPhi / dx_ / dx_;
 			pi_defect_(x,c) = c1 * pi_defect_(x,c) + c2 * ( lapPhi -  a2 * potentialprime(x,c) );
 		}
 	}
@@ -451,7 +422,7 @@ void Global_defect::update_pi()
 
 double Global_defect::potentialprime(Site & x, int comp)
 {
-	float phiNorm2 = 0;
+	double phiNorm2 = 0;
 	for(int i =0;i<nComponents_;i++)phiNorm2 += phi_defect_(x,i)*phi_defect_(x,i);
 	return 1.0 * lambda_ * ( phiNorm2 - eta2_) *  phi_defect_(x,comp);
 }
@@ -483,7 +454,6 @@ void Global_defect::averagephidefect()
 		phifile << t_<<" "<<phiavg_<<endl;
 		phifile.close();
 	}
-  //averageField(phi_defect_,"/media/vilasini/DATA/UNIGE/Thesis/plots/"+ runID_+"_average_phi.txt",0);
 }
 
 void Global_defect::averagerhodefect()
@@ -507,11 +477,9 @@ void Global_defect::averagerhodefect()
 	}
 }
 
-
-
 double Global_defect::potential(Site & x)
 {
-	float phiNorm2 = 0;
+	double phiNorm2 = 0;
 	for(int i =0;i<nComponents_;i++)phiNorm2 += phi_defect_(x,i)*phi_defect_(x,i);
 	return lambda_ * ( phiNorm2 - eta2_) * ( phiNorm2 - eta2_) / 4.0;
 }
@@ -579,12 +547,11 @@ bool Global_defect::output_now()
 {
 	//  return step%100==0?true:false;
 	int val = 1;
-	float temp = t_;
+	double temp = t_;
 	for(int i =0; i<snap_times_.size(); i++)
 	{
-		float temp0 = Snap_times_[i];
+		double temp0 = Snap_times_[i];
 //		double temp1 = t_;
-
 		temp0 = ceil(Snap_times_[i] * 100.0) / 100.0;
 //		temp1 = ceil(t_ * 100.0) / 100.0;
 		if(temp - dt_/2.0 < temp0 && temp0 < temp + dt_/2.0 )
@@ -609,16 +576,11 @@ bool Global_defect::output_now()
 void Global_defect::output()
 {
 	COUT<<"outputing field at t="<<t_<<endl;
-	double temp = t_;
-	string filename_end= int2string(temp,99999)+".h5";
+	string filename_end= int2string(t_,99999)+".h5";
 
 	phi_defect_.saveHDF5(path_ + runID_ + "_phi_defect_" + filename_end);
 	pi_defect_.saveHDF5(path_ + runID_ + "_pi_defect_" + filename_end);
 	rho_.saveHDF5(path_ + runID_ + "_rho_defect_" + filename_end);
-
-	phi_defect_t_.saveHDF5(path_ + runID_ + "_phi_defect_t_" + filename_end);
-	pi_defect_t_.saveHDF5(path_ + runID_ + "_pi_defect_t_" + filename_end);
-	rho_t_.saveHDF5(path_ + runID_ + "_rho_defect_t_" + filename_end);
 	//  compute_pk_();
 }
 
@@ -633,13 +595,13 @@ void Global_defect::output()
 void Global_defect::compute_rho_P_()
 {
 	Site x(lat_);
-	float a2 = a_*a_;
+	double a2 = a_*a_;
 	for(x.first();x.test();x.next())
 	{
-		float mpidot = 0;
-		float temp;
-		float gradPhi2 = 0;
-		float phiNorm2 = 0;
+		double mpidot = 0;
+		double temp;
+		double gradPhi2 = 0;
+		double phiNorm2 = 0;
 		for(int c=0;c<nComponents_;c++)
 		{
 			mpidot += 0.5*pi_defect_(x,c)*pi_defect_(x,c);
